@@ -11,14 +11,27 @@ services:
     environment:
       DOZZLE_LEVEL: debug
 
-  # sched:
-  #   build: ./schedul_rs
-  #   volumes:
-  #     - ./schedul_rs:/usr/src/app
-  #   ports:
-  #     - 7000:6767
-  #   depends_on:
-  #     - job_replica_queue
+  sched_lead:
+    build: ./schedul_rs
+    volumes:
+      - ./schedul_rs:/app
+    ports:
+      - 7000:6767
+    depends_on:
+      - job_replica_queue
+    environment:
+      SCHED_TYPE: leader
+
+  sched_follow:
+    build: ./schedul_rs
+    volumes:
+      - ./schedul_rs:/app
+    ports:
+      - 7001:6767
+    depends_on:
+      - job_replica_queue
+    environment:
+      SCHED_TYPE: follower
 
   zookeeper:
     image: confluentinc/cp-zookeeper:latest

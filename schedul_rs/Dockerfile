@@ -1,9 +1,13 @@
 FROM rust:1.67
 
-WORKDIR /usr/src/app
-COPY . .
+EXPOSE 6767
+WORKDIR /app
 
+COPY Cargo.toml Cargo.lock ./
+RUN mkdir src && echo "fn main() {}" > src/main.rs
 RUN cargo install --path .
 
-EXPOSE 6767
-CMD ["cargo", "watch", "-q", "-c", "-x", "run", "-q"]
+COPY . .
+
+RUN cargo install cargo-watch
+CMD ["cargo", "watch", "-q", "-w", "src", "-x", "run" ]
