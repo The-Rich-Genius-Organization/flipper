@@ -1,0 +1,55 @@
+version: "3.9"
+
+services:
+  dozzle: # Visualise logs and healthchecks
+    container_name: dozzle
+    image: amir20/dozzle:latest
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      - 9999:8080
+    environment:
+      DOZZLE_LEVEL: debug
+
+  # sched:
+  #   build: ./schedul_rs
+  #   volumes:
+  #     - ./schedul_rs:/usr/src/app
+  #   ports:
+  #     - 7000:6767
+  #   depends_on:
+  #     - job_replica_queue
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:latest
+    ports:
+      - 22181:2181
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+
+  job_replica_queue:
+    image: wurstmeister/kafka:latest
+    depends_on:
+      - zookeeper
+    ports:
+      - 29092:29092
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENERS: PLAINTEXT://job_replica_queue:9092,PLAINTEXT_HOST://job_replica_queue:29092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://job_replica_queue:9092,PLAINTEXT_HOST://localhost:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+      KAFKA_CREATE_TOPICS: "job_replica:1:1"
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "kafka-topics.sh --bootstrap-server job_replica_queue:9092 --list | grep -Fxq job_replica",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 10

@@ -1,0 +1,13 @@
+[package]
+name = "schedul_rs"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+cargo-watch = "8.4.1"
+futures = "0.3.29"
+kafka = "0.10.0"
+nickel = "*"
+tokio = { version = "1.11.0", features = ["full"] }
