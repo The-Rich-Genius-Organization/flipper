@@ -1,7 +1,8 @@
 import requests
+from uuid import uuid4
 
 job = {
-    "job_id": "009",
+    "job_id": str(uuid4())[:8],
     "seconds": 2
 }
 
