@@ -4,9 +4,14 @@ use std::env;
 
 #[tokio::main]
 async fn main() {
-    match env::var("SCHED_TYPE") {
+    let delay: u64 = match env::var("DELAY") {
+        Ok(val) => val.parse().unwrap(),
+        _ => 0,
+    };
+
+    let _ = match env::var("SCHED_TYPE") {
         Ok(val) if val == "leader" => leader::run().await,
-        Ok(val) if val == "follower" => follower::run(),
+        Ok(val) if val == "follower" => follower::run(delay).await,
         _ => panic!("Invalid SCHED_TYPE env var. SCHED_TYPE must be either 'leader' or 'follower'"),
     };
 

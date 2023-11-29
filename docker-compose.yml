@@ -32,6 +32,7 @@ services:
       - job_replica_queue
     environment:
       SCHED_TYPE: follower
+      DELAY: 5
 
   zookeeper:
     image: confluentinc/cp-zookeeper:latest

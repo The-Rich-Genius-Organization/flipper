@@ -1,5 +1,5 @@
 # Building cargo base with cargo-watch
-# FROM rust:1.67
+# FROM rust:1.73
 # WORKDIR /app
 # RUN cargo new --bin app
 # RUN cargo install cargo-watch
