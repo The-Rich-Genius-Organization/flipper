@@ -1,5 +1,5 @@
-use schedul_rs::follower;
-use schedul_rs::leader;
+use schedul_rs::follower::follower;
+use schedul_rs::leader::leader;
 use std::env;
 
 #[tokio::main]
