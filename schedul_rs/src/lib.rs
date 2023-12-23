@@ -9,8 +9,8 @@ extern crate lazy_static;
  *      - [ ] Decide if functional or oo, and stick to it
  *  - [x] Final diagram overview
  *  - [x] (follower) on startup, schedule all non-taken jobs from db
- *  - [ ] Support for different scheduling input types (timestamp, datetime,)
- *  - [ ] Support for cron jobs/recurring jobs
+ *  - [x] Support for different scheduling input types (timestamp, datetime,)
+ *  - [x] Support for cron jobs/recurring jobs
  *  - [ ] Benchmarking
  */
 
@@ -19,3 +19,4 @@ pub use crate::sutils::utils;
 
 pub mod follower;
 pub mod leader;
+pub mod redoer;

@@ -41,9 +41,9 @@ pub mod follower {
                     // on startup, followers should schedule all non-taken jobs
                     print!("DB Setup ... OK ");
                     println!("{:?}", untaken_jobs);
-                    for (job_id, seconds) in untaken_jobs {
+                    for (job_id, seconds, cron) in untaken_jobs {
                         let _ = sched
-                            .add_one_shot(&job_id, seconds.parse::<u64>().unwrap() + delay)
+                            .add_one_shot(&job_id, seconds.parse::<u64>().unwrap() + delay, &cron)
                             .await;
                     }
                     break;
@@ -61,8 +61,9 @@ pub mod follower {
                     let data: serde_json::Value = serde_json::from_slice(m.value).unwrap();
                     let job_id = data["job_id"].as_str().unwrap_or("null");
                     let seconds = data["seconds"].as_u64().unwrap_or(0) + delay;
+                    let recur = data["recur"].as_str().unwrap_or("null");
 
-                    sched.add_one_shot(job_id, seconds).await.unwrap();
+                    sched.add_one_shot(job_id, seconds, recur).await.unwrap();
                     println!(
                         "job <- {}",
                         json!({ "job_id": job_id, "seconds": seconds }).to_string()

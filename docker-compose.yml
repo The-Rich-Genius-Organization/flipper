@@ -34,6 +34,17 @@ services:
       SCHED_TYPE: follower
       DELAY: 5
 
+  sched_redoer:
+    build: ./schedul_rs
+    volumes:
+      - ./schedul_rs:/app
+    ports:
+      - 7002:6767
+    depends_on:
+      - job_execution_queue
+    environment:
+      SCHED_TYPE: redoer
+
   zookeeper:
     image: confluentinc/cp-zookeeper:latest
     ports:
@@ -68,6 +79,32 @@ services:
       timeout: 5s
       retries: 10
 
+  job_execution_queue:
+    image: wurstmeister/kafka:latest
+    depends_on:
+      - zookeeper
+    ports:
+      - 39092:29092
+    environment:
+      KAFKA_BROKER_ID: 2
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENERS: PLAINTEXT://job_execution_queue:9092,PLAINTEXT_HOST://job_execution_queue:29092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://job_execution_queue:9092,PLAINTEXT_HOST://localhost:39092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+      KAFKA_CREATE_TOPICS: "job_execution:1:1"
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "kafka-topics.sh --bootstrap-server job_execution_queue:9092 --list | grep -Fxq job_execution",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
   db:
     image: postgres
     # restart: always
@@ -80,3 +117,12 @@ services:
     # restart: always
     ports:
       - 8080:8080
+
+  # ---------------------------- EXAMPLE JOB TAKERS ----------------------------
+
+  example_consumer_nodejs:
+    build: ./examples/nodejs_consumer
+    volumes:
+      - ./examples/nodejs_consumer:/usr/src/app
+    depends_on:
+      - job_execution_queue
