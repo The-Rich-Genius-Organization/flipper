@@ -41,9 +41,15 @@ pub mod follower {
                     // on startup, followers should schedule all non-taken jobs
                     print!("DB Setup ... OK ");
                     println!("{:?}", untaken_jobs);
-                    for (job_id, seconds, cron) in untaken_jobs {
+                    for (job_id, seconds, cron, label, payload) in untaken_jobs {
                         let _ = sched
-                            .add_one_shot(&job_id, seconds.parse::<u64>().unwrap() + delay, &cron)
+                            .add_one_shot(
+                                &job_id,
+                                seconds.parse::<u64>().unwrap() + delay,
+                                &cron,
+                                &label,
+                                &payload,
+                            )
                             .await;
                     }
                     break;
@@ -62,11 +68,21 @@ pub mod follower {
                     let job_id = data["job_id"].as_str().unwrap_or("null");
                     let seconds = data["seconds"].as_u64().unwrap_or(0) + delay;
                     let recur = data["recur"].as_str().unwrap_or("null");
+                    let job_label = data["job_label"].as_str().unwrap_or("null");
+                    let job_payload = data["job_payload"].as_str().unwrap_or("null");
 
-                    sched.add_one_shot(job_id, seconds, recur).await.unwrap();
+                    sched
+                        .add_one_shot(job_id, seconds, recur, job_label, job_payload)
+                        .await
+                        .unwrap();
                     println!(
                         "job <- {}",
-                        json!({ "job_id": job_id, "seconds": seconds }).to_string()
+                        json!({ "job_id": job_id,
+                            "seconds": seconds,
+                            "recur": recur,
+                            "job_label": job_label,
+                            "job_payload": job_payload,
+                        })
                     );
                     // println!(
                     //     "{}:{}@{}: {:?}",

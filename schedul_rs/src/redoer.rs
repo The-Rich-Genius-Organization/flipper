@@ -21,7 +21,7 @@ pub mod redoer {
             ("schedule_value", String::from(recur)),
         ]);
         Client::new()
-            .post("http://sched_lead:6767/api/v1/job")
+            .post("http://lead_loadbalance:5000/api/v1/job")
             .json(&body)
             .send()
             .await?;

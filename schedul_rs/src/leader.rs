@@ -8,6 +8,7 @@ pub mod leader {
     use std::str::FromStr;
     use std::time::Duration;
     use tokio_cron_scheduler::JobScheduler;
+    use uuid::Uuid;
 
     pub async fn run() -> Result<(), Box<dyn std::error::Error>> {
         let mut server = Nickel::new();
@@ -27,7 +28,7 @@ pub mod leader {
             std::thread::sleep(Duration::from_secs(3));
         }
 
-        fn send_to_kafka(topic: &str, value: &str) -> Result<(), kafka::Error> {
+        fn send_to_replica_queue(topic: &str, value: &str) -> Result<(), kafka::Error> {
             let mut producer = Producer::from_hosts(vec![utils::JOB_REPL_QUEUE_BROKER.to_owned()])
                 .with_ack_timeout(Duration::from_secs(1))
                 .with_required_acks(RequiredAcks::One)
@@ -77,27 +78,33 @@ pub mod leader {
 
             post utils::v1("job") => |req, _res| {
                 let data = req.json_as::<serde_json::Value>().unwrap();
-                let job_id = data["job_id"].as_str().unwrap_or("null");
+                let backup_id = Uuid::new_v4().to_string();
+                let job_id = data["schedule_id"].as_str().unwrap_or(&backup_id);
                 let schedule_type = data["schedule_type"].as_str().unwrap_or("null");
                 let schedule_value = data["schedule_value"].as_str().unwrap_or("null");
                 let seconds = schedule_instruction_to_seconds(schedule_type, schedule_value);
+                let job_label = data["job_label"].as_str().unwrap_or("null");
+                let job_payload = data["job_payload"].as_str().unwrap_or("null");
                 let recur = match schedule_type {
                     "cron" => schedule_value,
                     _ => "null",
                 };
+
+                let _ = utils::tok_rt().block_on(sched.add_one_shot(job_id, seconds, recur, job_label, job_payload));
+
                 let replica_message = json!({
                     "job_id": job_id,
                     "seconds": seconds,
                     "recur": recur,
+                    "job_label": job_label,
+                    "job_payload": job_payload,
                 }).to_string();
-
-                let _ = utils::tok_rt().block_on(sched.add_one_shot(job_id, seconds, recur));
                 println!(
                     "job -> {}",
                     replica_message
                 );
+                let res = send_to_replica_queue(utils::JOB_REPL_QUEUE_TOPIC, replica_message.to_string().as_str());
 
-                let res = send_to_kafka(utils::JOB_REPL_QUEUE_TOPIC, replica_message.to_string().as_str());
                 match res {
                     Ok(_) => r#"{ "status" : "ok" }"#,
                     _ => r#"{ "status" : "error" }"#,
