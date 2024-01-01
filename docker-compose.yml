@@ -11,28 +11,44 @@ services:
     environment:
       DOZZLE_LEVEL: debug
 
+  lead_loadbalance:
+    image: "nginx:latest"
+    # restart: always
+    volumes:
+      - ./nginx/data:/etc/nginx/conf.d
+    ports:
+      - "5000:5000"
+    depends_on:
+      - sched_lead
+
   sched_lead:
     build: ./schedul_rs
     volumes:
       - ./schedul_rs:/app
-    ports:
-      - 7000:6767
     depends_on:
       - job_replica_queue
     environment:
       SCHED_TYPE: leader
 
-  sched_follow:
+  sched_follow1:
     build: ./schedul_rs
     volumes:
       - ./schedul_rs:/app
-    ports:
-      - 7001:6767
     depends_on:
       - job_replica_queue
     environment:
       SCHED_TYPE: follower
       DELAY: 5
+
+  sched_follow2:
+    build: ./schedul_rs
+    volumes:
+      - ./schedul_rs:/app
+    depends_on:
+      - job_replica_queue
+    environment:
+      SCHED_TYPE: follower
+      DELAY: 10
 
   sched_redoer:
     build: ./schedul_rs
