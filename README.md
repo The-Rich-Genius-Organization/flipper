@@ -8,13 +8,33 @@ A high-performance scheduling engine built in Rust. Designed for scalability and
 
 We use a replicated leader-follower approach for horizontal scale and guaranteed execution with seamless failover.
 
-> Schedule a job using seconds, a Unix timestamp, UTC datetime or cron expression.
->
+**Schedule a job using seconds, a Unix timestamp, UTC datetime or cron expression**
+
 > ```json
-> {"job_id": "0-e0c90c82", "schedule_type": "seconds", "schedule_value": "5"}
-> {"job_id": "1-53b570d0", "schedule_type": "timestamp", "schedule_value": "1703345877.875303"}
-> {"job_id": "2-4cd895a1", "schedule_type": "datetime", "schedule_value": "2023-12-23T22:37:57.875303+07:00"}
-> {"job_id": "3-14dabc8e", "schedule_type": "cron", "schedule_value": "*/10 * * * * *"}
+> {
+>  "schedule_type": "seconds",
+>  "schedule_value": "5",
+>  "job_label": "email",
+>  "job_payload": "{'from': 'demo@flipper.io', 'to': 'jomama@yahoo.com', 'subject': 'Hello', 'body': 'Hello World'}"
+> },
+> {
+>  "schedule_type": "timestamp",
+>  "schedule_value": "1704108914.872404",
+>  "job_label": "payment",
+>  "job_payload": "{'user_id': '123', 'amount': '1000', 'currency': 'USD'}"
+> },
+> {
+>  "schedule_type": "datetime",
+>  "schedule_value": "2024-01-01T18:35:14.872404+07:00",
+>  "job_label": "sms",
+>  "job_payload": "{'from': '1234567890', 'to': '1234567890', 'message': 'Hello World'}"
+> },
+> {
+>  "schedule_type": "cron",
+>  "schedule_value": "*/10 * * * * *",
+>  "job_label": "etl",
+>  "job_payload": "{'table': 'users', 'columns': ['id', 'name', 'email']}"
+> }
 > ```
 
 - **Distributed Architecture**: Optimized for handling scheduling in a distributed environment.
@@ -29,6 +49,12 @@ We use a replicated leader-follower approach for horizontal scale and guaranteed
 ## Dependencies :package:
 
 - [Rust](https://www.rust-lang.org/) >= 1.7
+- Docker
+  - [Docker](https://www.docker.com/) ~ 24.0
+  - [Docker Compose](https://docs.docker.com/compose/) ~ 2.23
+- Python
+  - [Python](https://www.python.org/) > 3.7
+  - [Pytest](https://docs.pytest.org/en/stable/) ~ 6.2.4
 
 ## Install & Run 🛠️
 
@@ -39,7 +65,7 @@ docker-compose up
 ## Testing :microscope:
 
 ```bash
-python test.py
+pytest
 ```
 
 <!-- ## ️️ Common Issues and FAQ :pushpin: -->
@@ -51,6 +77,7 @@ python test.py
 
 ## ️️ Upcoming Features :construction:
 
+- [x] Job Type request field (auto created kafka topic) and Payload
 - [ ] TTL for taken jobs in database
 
 <h2 align="center">Contact</h2>

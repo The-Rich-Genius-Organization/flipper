@@ -1,7 +1,7 @@
 const kafka = require("kafka-node");
 
 const KAFKA_URL = "job_execution_queue:9092";
-const TOPIC = "job_execution";
+const TOPIC = "email";
 
 const sleep = (time) =>
   new Promise((res) => setTimeout(res, time, "done sleeping"));
@@ -26,8 +26,8 @@ const main = async () => {
   const consumer = new kafka.Consumer(kafkaClient, [{ topic: TOPIC }]);
 
   consumer.on("message", async (message) => {
-    await sleep(1000); // for demo purposes
-    // console.log(`doing something with job: ${message.value}`);
+    await sleep(500); // just for demo purposes
+    console.log(`doing something with job: ${message.value}`);
   });
 };
 
